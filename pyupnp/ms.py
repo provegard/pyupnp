@@ -107,7 +107,8 @@ class MediaServer(object):
         id = req.get_arg('ObjectID')
         flag = req.get_arg('BrowseFlag')
         start = int(req.get_arg('StartingIndex'))
-        count = int(req.get_arg('RequestedCount'))
+        rc = req.get_arg('RequestedCount')
+        count = 0 if rc == "" else int(rc)
         order = req.get_arg('SortCriteria')
     
         parent = id

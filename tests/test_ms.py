@@ -80,3 +80,11 @@ class TestMediaServer(object):
         items = self._get_BrowseResponse_items(res)
         eq_(1, len(items))
 
+    def test_that_RequestedCount_is_interpreted_as_zero_if_empty(self):
+        msg = self._createBrowseMessage("")
+        sid = "urn:upnp-org:serviceId:ContentDirectory"
+        res = self._postSoapRequest(sid, msg)
+        eq_(200, res.status_code)
+        items = self._get_BrowseResponse_items(res)
+        eq_(1, len(items))
+
