@@ -41,7 +41,7 @@ from twisted.internet.protocol import DatagramProtocol
 from twisted.internet.threads import blockingCallFromThread
 from twisted.python.threadpool import ThreadPool
 from twisted.python.threadable import isInIOThread
-from twisted.web import server, resource, wsgi, static
+from twisted.web import server, wsgi, static
 from routes import Mapper
 from routes.middleware import RoutesMiddleware
 import webob
@@ -297,7 +297,7 @@ class SoapMiddleware(object):
 
 class SSDPServer(DatagramProtocol):
     def __init__(self, owner):
-        self.owner = owner;
+        self.owner = owner
 
     def datagramReceived(self, data, addr):
         self.owner.datagramReceived(data, addr, get_outip(addr[0]))
@@ -360,7 +360,7 @@ class UpnpDevice(object):
     def make_upnp_path(self, sid=None, action='desc'):
         kwargs = {'controller': 'upnp', 'action': action, 'udn': self.udn}
         if sid != None:
-          kwargs['sid'] = sid
+            kwargs['sid'] = sid
         return self.mapper.generate(**kwargs)
 
     def make_location(self, ip, port_num):
@@ -1086,7 +1086,6 @@ if __name__ == '__main__':
     _test()
 
     from sys import argv
-    from uuid import uuid1
     from optparse import OptionParser
     from twisted.internet import reactor
     from pkg_resources import resource_filename
@@ -1110,7 +1109,6 @@ if __name__ == '__main__':
     # parse options
     parser = OptionParser(usage='%prog [options]')
     default_udn = 'uuid:00000000-0000-0000-001122334455'
-    #default_udn = 'uuid:' + str(uuid1())
     parser.add_option('-u', '--udn', dest='udn', default=default_udn)
     parser.add_option('-d', '--desc', dest='desc', default='xml/ms.xml')
     options, args = parser.parse_args(argv)
