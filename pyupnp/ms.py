@@ -131,6 +131,8 @@ class MediaServer(object):
             if parent == '':
                 parent = '0'
         elif flag == 'BrowseDirectChildren':
+            if count == 0:
+                count = 1e6
             for name in dircache.listdir(id):
                 if name.startswith('.'):
                     continue

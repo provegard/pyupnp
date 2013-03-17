@@ -56,15 +56,27 @@ class TestMediaServer(object):
                        content_type='text/xml; charset="utf-8"')
         return res
 
+    def _get_BrowseResponse_items(self, res):
+        soap = SoapMessage.parse(StringIO(res.text), name="BrowseResponse")
+        result = soap.get_arg("Result")
+        didl = ET.fromstring(result)
+        items = didl.findall("{urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/}item")
+        return items
+
 
     def test_that_Browse_response_includes_the_correct_number_of_items(self):
         msg = self._createBrowseMessage("1")
         sid = "urn:upnp-org:serviceId:ContentDirectory"
         res = self._postSoapRequest(sid, msg)
         eq_(200, res.status_code)
-        soap = SoapMessage.parse(StringIO(res.text), name="BrowseResponse")
-        result = soap.get_arg("Result")
-        didl = ET.fromstring(result)
-        items = didl.findall("{urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/}item")
+        items = self._get_BrowseResponse_items(res)
+        eq_(1, len(items))
+
+    def test_that_Browse_response_includes_all_items_if_RequestedCount_is_zero(self):
+        msg = self._createBrowseMessage("0")
+        sid = "urn:upnp-org:serviceId:ContentDirectory"
+        res = self._postSoapRequest(sid, msg)
+        eq_(200, res.status_code)
+        items = self._get_BrowseResponse_items(res)
         eq_(1, len(items))
 
