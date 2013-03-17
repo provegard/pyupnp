@@ -10,6 +10,7 @@ from twisted.python.threadpool import ThreadPool
 from twisted.web import server, resource, wsgi, static
 from routes import Mapper
 from routes.middleware import RoutesMiddleware
+from nose.tools import eq_
 
 from pyupnp import upnp
 from pyupnp.upnp import *
@@ -17,16 +18,16 @@ from pyupnp.upnp import *
 
 def test_toxpath():
     xpath = toxpath('x:b/y:d/f/g:h/:i', 'e', {'x': 'a', 'y': 'c'})
-    assert '{a}b/{c}d/{e}f/g:h/:i' == xpath
+    eq_('{a}b/{c}d/{e}f/g:h/:i', xpath)
 
     xpath = toxpath('a:b/c')
-    assert 'a:b/c' == xpath
+    eq_('a:b/c', xpath)
 
 
 def test_mkxp():
     xp = mkxp('e', {'x': 'a', 'y': 'c'})
     xpath = xp('x:b/y:d/f/g:h/:i')
-    assert '{a}b/{c}d/{e}f/g:h/:i' == xpath
+    eq_('{a}b/{c}d/{e}f/g:h/:i', xpath)
 
 
 def test_build_packet():
@@ -39,49 +40,49 @@ def test_build_packet():
     expected += 'HOST: 127.0.0.1:80\r\n'
     expected += 'Connection: close\r\n\r\n'
     actual = upnp.build_packet(first_line, packet)
-    assert expected == actual
+    eq_(expected, actual)
 
 
 def test_SoapMessage():
     soap = SoapMessage('type', 'action')
 
     # get_name
-    assert 'action' == soap.get_name()
+    eq_('action', soap.get_name())
 
     # get_header
-    assert '"type#action"' == soap.get_header()
+    eq_('"type#action"', soap.get_header())
 
     # get_arg
-    assert '' == soap.get_arg('a1', '')
-    assert None == soap.get_arg('a1', None)
-    assert 'abc' == soap.get_arg('a1', 'abc')
+    eq_('', soap.get_arg('a1', ''))
+    eq_(None, soap.get_arg('a1', None))
+    eq_('abc', soap.get_arg('a1', 'abc'))
 
     # set_args
     soap.set_args([('a1', 'v1'), ('a2', 'v2')])
 
     # get_arg
-    assert 'v1' == soap.get_arg('a1')
-    assert 'v1' == soap.get_arg('a1', 'abc')
-    assert 'v2' == soap.get_arg('a2')
-    assert '' == soap.get_arg('a3')
-    assert 'abc' == soap.get_arg('a3', 'abc')
+    eq_('v1', soap.get_arg('a1'))
+    eq_('v1', soap.get_arg('a1', 'abc'))
+    eq_('v2', soap.get_arg('a2'))
+    eq_('', soap.get_arg('a3'))
+    eq_('abc', soap.get_arg('a3', 'abc'))
 
     # get_args
-    assert [('a1', 'v1'), ('a2', 'v2')] == soap.get_args()
+    eq_([('a1', 'v1'), ('a2', 'v2')], soap.get_args())
 
     # set_arg (add)
     soap.set_arg('a3', 'v3')
-    assert 'v3' == soap.get_arg('a3')
+    eq_('v3', soap.get_arg('a3'))
 
     # set_arg (update)
     soap.set_arg('a1', 'new one')
-    assert 'new one' == soap.get_arg('a1')
+    eq_('new one', soap.get_arg('a1'))
 
     # del_arg
     soap.del_arg('a1')
-    assert '' == soap.get_arg('a1')
-    assert None == soap.get_arg('a1', None)
-    assert 'abc' == soap.get_arg('a1', 'abc')
+    eq_('', soap.get_arg('a1'))
+    eq_(None, soap.get_arg('a1', None))
+    eq_('abc', soap.get_arg('a1', 'abc'))
 
     # parse
     text = """<?xml version="1.0" encoding="utf-8"?>
@@ -97,23 +98,23 @@ def test_SoapMessage():
 </s:Envelope>
 """
     msg = SoapMessage.parse(StringIO(text))
-    assert 'ActionName' == msg.get_name()
-    assert 'ActionNamespace' == msg.u
-    assert '"ActionNamespace#ActionName"' == msg.get_header()
+    eq_('ActionName', msg.get_name())
+    eq_('ActionNamespace', msg.u)
+    eq_('"ActionNamespace#ActionName"', msg.get_header())
 
     # tostring
     def _check_elem(elem0, elem1):
         # check element name and value
-        assert elem0.tag == elem1.tag
-        assert elem0.text == elem1.text
+        eq_(elem0.tag, elem1.tag)
+        eq_(elem0.text, elem1.text)
 
         # check all attributes
-        assert set(elem0.attrib.items()) == set(elem1.attrib.items())
+        eq_(set(elem0.attrib.items()), set(elem1.attrib.items()))
 
         # check all children
         children0 = elem0.getchildren()
         children1 = elem1.getchildren()
-        assert len(children0) == len(children1)
+        eq_(len(children0), len(children1))
         for child0, child1 in zip(children0, children1):
             _check_elem(child0, child1)
 
@@ -131,8 +132,8 @@ def test_SoapError():
 
     # tostring, parse
     clone = SoapError.parse(soap.tostring())
-    assert str(code) == clone.code
-    assert desc == clone.desc
+    eq_(str(code), clone.code)
+    eq_(desc, clone.desc)
 
 
 def test_SoapMiddleware():
@@ -140,8 +141,8 @@ def test_SoapMiddleware():
 
     pair = [None, None]
     def app(environ, start_response):
-         assert pair[0] == environ.get('upnp.soap.serviceType', None)
-         assert pair[1] == environ.get('upnp.soap.action', None)
+         eq_(pair[0], environ.get('upnp.soap.serviceType', None))
+         eq_(pair[1], environ.get('upnp.soap.action', None))
 
     for x in ('a', ''):
         for y in ('b', '', '#', 'c#', '#c', 'c#c', 'd e f'):
@@ -159,7 +160,7 @@ def test_UpnpBase():
     base = UpnpBase()
 
     # make_mt_path
-    assert '/mt/name/id' == base.make_mt_path('name', 'id')
+    eq_('/mt/name/id', base.make_mt_path('name', 'id'))
 
 
 def test_UpnpDevice():
@@ -176,16 +177,16 @@ def test_UpnpDevice():
 
     # __init__
     device = UpnpDevice(udn, dd, None)
-    assert udn == device.udn
-    assert UpnpDevice.SERVER_NAME == device.server_name
-    assert None == device.soap_app
-    assert udn == device.dd.findtext(xp('device/UDN'))
+    eq_(udn, device.udn)
+    eq_(UpnpDevice.SERVER_NAME, device.server_name)
+    eq_(None, device.soap_app)
+    eq_(udn, device.dd.findtext(xp('device/UDN')))
 
     device = UpnpDevice(udn, dd, soap_app, server_name)
-    assert udn == device.udn
-    assert server_name == device.server_name
-    assert soap_app == device.soap_app.app
-    assert udn == device.dd.findtext(xp('device/UDN'))
+    eq_(udn, device.udn)
+    eq_(server_name, device.server_name)
+    eq_(soap_app, device.soap_app.app)
+    eq_(udn, device.dd.findtext(xp('device/UDN')))
 
     # make_notify_packets
     host = '127.0.0.1:1900'
@@ -201,50 +202,51 @@ def test_UpnpDevice():
     for packets in (sa, sb):
         for packet in packets:
             d = dict(packet)
-            assert host == d.get('HOST')
+            eq_(host, d.get('HOST'))
             assert d.get('USN').startswith(udn)
             if d.get('NTS') == 'ssdp:alive':
-                assert location == d.get('LOCATION')
-                assert device.server_name == d.get('SERVER')
+                eq_(location, d.get('LOCATION'))
+                eq_(device.server_name, d.get('SERVER'))
 
     # make_msearch_response
     # ssdp:all
     headers = HTTPMessage(StringIO('ST: ssdp:all'))
     packets = device.make_msearch_response(headers, addr, dest)
-    assert 3 + 2 * 0 + len(device.services) == len(packets)
+    eq_(3 + 2 * 0 + len(device.services), len(packets))
     for packet in packets:
         d = dict(packet)
-        assert '' == d.get('EXT')
-        assert location == d.get('LOCATION')
-        assert device.server_name == d.get('SERVER')
+        eq_('', d.get('EXT'))
+        eq_(location, d.get('LOCATION'))
+        eq_(device.server_name, d.get('SERVER'))
         assert d.get('USN').startswith(device.udn)
 
     # invalid ST
     headers = HTTPMessage(StringIO('ST: xxxx'))
     packets = device.make_msearch_response(headers, addr, dest)
-    assert [] == packets
+    eq_([], packets)
 
     # UDN
     headers = HTTPMessage(StringIO('ST: ' + device.udn))
     packets = device.make_msearch_response(headers, addr, dest)
-    assert 1 == len(packets)
+    eq_(1, len(packets))
     d = dict(packets[0])
-    assert '' == d.get('EXT')
-    assert location == d.get('LOCATION')
-    assert device.server_name == d.get('SERVER')
-    assert device.udn == d.get('ST') == d.get('USN')
+    eq_('', d.get('EXT'))
+    eq_(location, d.get('LOCATION'))
+    eq_(device.server_name, d.get('SERVER'))
+    eq_(device.udn, d.get('ST'))
+    eq_(device.udn, d.get('USN'))
 
     # serviceType
     for serviceType in device.serviceTypes + ['upnp:rootdevice']:
         headers = HTTPMessage(StringIO('ST: ' + serviceType))
         packets = device.make_msearch_response(headers, addr, dest)
-        assert 1 == len(packets)
+        eq_(1, len(packets))
         d = dict(packets[0])
-        assert '' == d.get('EXT')
-        assert location == d.get('LOCATION')
-        assert device.server_name == d.get('SERVER')
-        assert serviceType == d.get('ST')
-        assert '%s::%s' % (device.udn, serviceType) == d.get('USN')
+        eq_('', d.get('EXT'))
+        eq_(location, d.get('LOCATION'))
+        eq_(device.server_name, d.get('SERVER'))
+        eq_(serviceType, d.get('ST'))
+        eq_('%s::%s' % (device.udn, serviceType), d.get('USN'))
 
     # __call__
     try:
@@ -394,13 +396,13 @@ def test_parse_npt():
     for npt_time, expected, exc in testcase:
         try:
             result = parse_npt(npt_time)
-            assert expected == result
+            eq_(expected, result)
             tmp = to_npt(result)
             print result, tmp
-            assert expected == parse_npt(tmp)
+            eq_(expected, parse_npt(tmp))
         except Exception, e:
             print npt_time, e
-            assert exc == e.__class__
+            eq_(exc, e.__class__)
 
 
 def test_parse_duration():
@@ -549,10 +551,10 @@ def test_parse_duration():
                 duration = prefix + _duration
                 result = parse_duration(duration)
                 expected = a * _expected
-                assert expected == result
+                eq_(expected, result)
             except Exception, e:
                 print duration, e
-                assert exc == e.__class__
+                eq_(exc, e.__class__)
                 continue
 
             # turnaround check
@@ -561,10 +563,10 @@ def test_parse_duration():
             print duration, result, tmp
             parts = duration.split('.')
             if len(parts) == 1:
-                assert expected == parse_duration(tmp)
+                eq_(expected, parse_duration(tmp))
             elif len(parts) == 2:
                 sec = parse_duration(tmp)
-                assert int(expected) == int(sec)
+                eq_(int(expected), int(sec))
                 if '/' in parts[1]:
                     F0, F1 = parts[1].split('/')
                     msec = float(F0) / float(F1)
@@ -637,10 +639,10 @@ def _test_StreamingServer():
 
     class StreamingServerStub(ByteSeekMixin, TimeSeekMixin, StreamingServer):
         def get_content(self, id, environ):
-            assert expected_id == id
+            eq_(expected_id, id)
             #raise ValueError(repr(environ))
             for k in headers:
-                assert headers[k] == environ['HTTP_' + k.upper()]
+                eq_(headers[k], environ['HTTP_' + k.upper()])
             return ContentStub(content_length,
                                'video/mpeg',
                                'DLNA.ORG_PN=MPEG_PS_NTSC;DLNA.ORG_OP=11')
@@ -676,7 +678,7 @@ def _test_StreamingServer():
     def check_result(contents):
         raise ValueError('expected: %d, actual: %d' % (content_length, len(contents)))
         #raise ValueError(repr(factory.response_headers))
-        assert content_length == len(contents)
+        eq_(content_length, len(contents))
     factory.deferred.addCallback(check_result)
 
     reactor.callLater(5, reactor.stop)
