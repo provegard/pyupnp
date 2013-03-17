@@ -249,20 +249,22 @@ def test_UpnpDevice():
         eq_('%s::%s' % (device.udn, serviceType), d.get('USN'))
 
     # __call__
-    try:
-        from webtest import TestApp
-        from routes.middleware import RoutesMiddleware
-        sid = 'urn:upnp-org:serviceId:ConnectionManager'
-        base = UpnpBase()
-        app = TestApp(RoutesMiddleware(device, base.mapper))
-        # DD
-        res = app.get('/upnp/' + udn)
-        # SCPD
-        res = app.get('/upnp/%s/%s' % (udn, sid))
-        # SOAP
-        #res = app.get('/%s/%s/%s' % (udn, sid, 'soap'))
-    except ImportError:
-        pass
+    from webtest import TestApp
+    from routes.middleware import RoutesMiddleware
+    sid = 'urn:upnp-org:serviceId:ConnectionManager'
+    base = UpnpBase()
+    app = TestApp(RoutesMiddleware(device, base.mapper))
+    # DD
+    #res = app.get('/upnp/' + udn)
+    res = app.get('/upnp/%s/desc' % (udn, ))
+    eq_(200, res.status_code)
+    assert res.text.find("urn:schemas-upnp-org:device:MediaServer:1")
+    # SCPD
+    res = app.get('/upnp/%s/%s/desc' % (udn, sid))
+    eq_(200, res.status_code)
+    assert res.text.find(sid)
+    # SOAP
+    #res = app.get('/%s/%s/%s' % (udn, sid, 'soap'))
 
 
 def test_parse_npt():

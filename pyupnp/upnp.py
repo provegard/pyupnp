@@ -44,8 +44,11 @@ from twisted.python.threadable import isInIOThread
 from twisted.web import server, wsgi, static
 from routes import Mapper
 from routes.middleware import RoutesMiddleware
+from et_fix import parse_attrns
 import webob
 
+# http://programmaticallyspeaking.com/serializing-non-qualified-attributes-with-elementtree.html
+ET.parse = parse_attrns
 
 __all__ = [
     'UpnpNamespace',
