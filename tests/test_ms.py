@@ -88,3 +88,11 @@ class TestMediaServer(object):
         items = self._get_BrowseResponse_items(res)
         eq_(1, len(items))
 
+    def test_that_Browse_response_uses_item_name_as_ID(self):
+        msg = self._createBrowseMessage("0")
+        sid = "urn:upnp-org:serviceId:ContentDirectory"
+        res = self._postSoapRequest(sid, msg)
+        eq_(200, res.status_code)
+        item = self._get_BrowseResponse_items(res)[0]
+        itemId = item.get("id")
+        eq_("len_std.jpg", itemId)

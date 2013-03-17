@@ -74,7 +74,7 @@ class MediaServer(object):
         for name, ext in objs:
             tag = 'item'
             resources = []
-            id = name[len(self.content_dir):]
+            id = name[len(self.content_dir)+1:]
             if os.path.isdir(name):
                 tag = 'container'
                 upnpclass = 'object.container'
