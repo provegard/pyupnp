@@ -120,7 +120,7 @@ def test_SoapMessage():
     _check_elem(msg.doc, ET.XML(msg.tostring()))
 
     # encoding check
-    msg.set_arg('mbarg', '日本語')
+    msg.set_arg('mbarg', u'日本語')
     _check_elem(msg.doc, ET.XML(msg.tostring()))
 
 
